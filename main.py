@@ -102,20 +102,16 @@ if ohlc_data_new:
             st.success("Laut dieser Prognose ist es sinnvoll in die Apple Aktie zu investieren, da der morgige Schlusskurs vermutlich höher ist als der heutige!")
         else:
             st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
-
-# Create a line chart for Apple stock price changes
-fig = go.Figure()
-
-# Add a trace for each OHLC data point
-fig.add_trace(go.Scatter(x=df.index, y=df['Open'], mode='lines', name='Open', line=dict(color='blue')))
-fig.add_trace(go.Scatter(x=df.index, y=df['High'], mode='lines', name='High', line=dict(color='green')))
-fig.add_trace(go.Scatter(x=df.index, y=df['Low'], mode='lines', name='Low', line=dict(color='red')))
-fig.add_trace(go.Scatter(x=df.index, y=df['Close'], mode='lines', name='Close', line=dict(color='purple')))
+fig = go.Figure(data=[go.Candlestick(x=df.index,
+                open=df['Open'],
+                high=df['High'],
+                low=df['Low'],
+                close=df['Close'])])
 
 # Customize the chart layout
 fig.update_layout(
-    title="Apple Stock Price Changes Over Time",
-    xaxis_title="Time",
+    title="Candlestick Chart for Apple Stock Price",
+    xaxis_title="Date",
     yaxis_title="Price",
     xaxis_rangeslider_visible=True,
     plot_bgcolor='white',  # Background color
