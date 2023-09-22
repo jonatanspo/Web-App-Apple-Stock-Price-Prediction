@@ -14,8 +14,8 @@ with open('model_svr.pkl', 'rb') as file:
 with open('min_max_scaler.pkl', 'rb') as file:
     scaler = pickle.load(file)
 
-# Funktion zum Scrapen der OHLC-Daten von der Börsen-Website
-def scrape_ohlc_data():
+# Funktion zum Scrapen der OHLC-Daten und des Volumens von der Börsen-Website
+def scrape_data():
     url = 'https://finance.yahoo.com/quote/AAPL/history?p=AAPL'
     
     try:
@@ -38,13 +38,18 @@ def scrape_ohlc_data():
         soup = BeautifulSoup(page_content, 'html.parser')
         table = soup.find_all('table')[0]
         rows = table.find_all('tr')
-        ohlc_row = rows[2]  # Ändern Sie die Zeilennummer auf 2, um die zweite Zeile zu erhalten
+        
+        # Extrahiere die neuesten OHLC-Daten (Zeile 1) und das Volumen (letzte Spalte)
+        ohlc_row = rows[1]  # Ändern Sie die Zeilennummer auf 1, um die erste Zeile zu erhalten
         ohlc_data = ohlc_row.find_all('td')
         open_price = float(ohlc_data[1].text)
         high_price = float(ohlc_data[2].text)
         low_price = float(ohlc_data[3].text)
         close_price = float(ohlc_data[4].text)
-        return open_price, high_price, low_price, close_price
+        
+        volume = float(rows[-1].find_all('td')[-1].text.replace(',', ''))  # Extrahiere das Volumen
+        
+        return open_price, high_price, low_price, close_price, volume
     except RequestException as e:
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
@@ -53,22 +58,23 @@ def scrape_ohlc_data():
 st.title('Apple Inc. Aktienkursprognose')
 
 # Automatisches Scraping beim Laden der App
-ohlc_data_new = scrape_ohlc_data()    
+ohlc_data_new = scrape_data()    
 if ohlc_data_new:
-    # Anzeige der gescrapten Daten in einer Tabelle
+    # Anzeige der gescrapten OHLC-Daten in einer Tabelle ohne Index
     st.write("Gescrapte OHLC-Daten:")
     ohlc_table = pd.DataFrame({
         "Kennzahl": ["Open", "High", "Low", "Close"],
-        "Wert": ohlc_data_new
+        "Wert": ohlc_data_new[:-1]  # Das letzte Element ist das Volumen, daher entfernen wir es
     })
     st.table(ohlc_table)
     
-    # Erstellen eines DataFrame aus den gescrapten Daten
+    # Erstellen eines DataFrame aus den gescrapten OHLC-Daten und dem Volumen
     df = pd.DataFrame({
         "Open": [ohlc_data_new[0]],
         "High": [ohlc_data_new[1]],
         "Low": [ohlc_data_new[2]],
         "Close": [ohlc_data_new[3]],
+        "Volume": [ohlc_data_new[4]]  # Das Volumen hinzufügen
     })
 else:
     st.error("Fehler beim Scraping der Daten.")
@@ -76,13 +82,11 @@ else:
 # Eingabefelder für die Prognose
 st.write("### Eingabefelder für die Prognose")
 
-p5 = st.number_input("Handelsvolumen heute ($)", min_value=0)
 p6 = st.number_input("Prozentuale Veränderung des NASDAQ Composite Index", step=0.01)
 p7 = st.number_input("20 Tage EMA der Apple Aktie", min_value=0.00, step=0.01)
 
 if st.button("Vorhersage"):
     # Füge die Benutzereingaben zu DataFrame hinzu
-    df["Volume"] = [p5]
     df["IXIC"] = [p6]
     df["ema_20"] = [p7]
 
