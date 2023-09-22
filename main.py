@@ -5,7 +5,7 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
-import plotly.graph_objects as go
+import matplotlib.pypplot as plt
 
 # Import des trainierten SVR-Modells
 with open('model_svr.pkl', 'rb') as file:
@@ -102,23 +102,40 @@ if ohlc_data_new:
             st.success("Laut dieser Prognose ist es sinnvoll in die Apple Aktie zu investieren, da der morgige Schlusskurs vermutlich höher ist als der heutige!")
         else:
             st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
-fig = go.Figure(data=[go.Candlestick(x=df.index,
-                open=df['Open'],
-                high=df['High'],
-                low=df['Low'],
-                close=df['Close'])])
 
-# Customize the chart layout
-fig.update_layout(
-    title="Candlestick Chart for Apple Stock Price",
-    xaxis_title="Date",
-    yaxis_title="Price",
-    xaxis_rangeslider_visible=True,
-    plot_bgcolor='white',  # Background color
-    margin=dict(l=20, r=20, t=40, b=20)  # Margins
-)
+# Sample OHLC data (replace with your actual data)
+data = {
+    'Date': ['2023-09-20', '2023-09-21', '2023-09-22'],
+    'Open': [175.32, 175.67, 174.67],
+    'High': [177.42, 176.32, 177.08],
+    'Low': [174.21, 174.21, 174.05],
+    'Close': [177.01, 174.56, 174.79],
+    'Volume': [60000000, 58000000, 55110610]  # Volume in millions
+}
 
-fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')  # X-axis gridlines
-fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')  # Y-axis gridlines
+df = pd.DataFrame(data)
+df['Date'] = pd.to_datetime(df['Date'])
 
-st.plotly_chart(fig)
+# Create a new figure
+fig, ax1 = plt.subplots(figsize=(10, 6))
+
+# Plot the OHLC data
+ax1.plot(df['Date'], df['Open'], 'g-', label='Open', linewidth=2)
+ax1.plot(df['Date'], df['Close'], 'r-', label='Close', linewidth=2)
+ax1.fill_between(df['Date'], df['Open'], df['Close'], where=df['Open'] > df['Close'], facecolor='red', alpha=0.3)
+ax1.fill_between(df['Date'], df['Open'], df['Close'], where=df['Open'] <= df['Close'], facecolor='green', alpha=0.3)
+
+# Add volume bars (assuming 'Volume' is in millions)
+ax2 = ax1.twinx()
+ax2.bar(df['Date'], df['Volume'], color='blue', alpha=0.3, width=0.2, label='Volume (Millions)')
+
+# Customize the plot
+ax1.set_xlabel('Date')
+ax1.set_ylabel('Price')
+ax2.set_ylabel('Volume (Millions)')
+plt.title('OHLC Data with Volume')
+plt.grid(True)
+fig.autofmt_xdate()  # Format the date axis
+fig.legend(loc='upper left', bbox_to_anchor=(0.13, 0.87))
+
+plt.show()
