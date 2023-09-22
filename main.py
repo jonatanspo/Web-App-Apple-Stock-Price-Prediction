@@ -5,7 +5,6 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
-import plotly.graph_objects as go
 
 # Import des trainierten SVR-Modells
 with open('model_svr.pkl', 'rb') as file:
@@ -102,22 +101,3 @@ if ohlc_data_new:
             st.success("Laut dieser Prognose ist es sinnvoll in die Apple Aktie zu investieren, da der morgige Schlusskurs vermutlich höher ist als der heutige!")
         else:
             st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
-
-    # Candlestick-Diagramm
-    fig = go.Figure(data=[go.Candlestick(x=df.index,
-                open=df['Open'],
-                high=df['High'],
-                low=df['Low'],
-                close=df['Close'])])
-
-    fig.update_layout(
-        title="Candlestick Chart für Apple Aktienkurs",
-        xaxis_title="Datum",
-        yaxis_title="Preis",
-        xaxis_rangeslider_visible=True
-    )
-
-    st.plotly_chart(fig)
-
-else:
-    st.error("Fehler beim Scraping der Daten.")
