@@ -3,4 +3,4 @@ scikit-learn
 requests 
 streamlit
 beautifulsoup4
-plotly==5.17.0
+yfinance

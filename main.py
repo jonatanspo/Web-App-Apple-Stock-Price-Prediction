@@ -56,6 +56,21 @@ def scrape_ohlc_data():
     except RequestException as e:
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
+    
+# Streamlit-Anwendung
+st.title('Apple Inc. Aktienkursverlauf')
+
+# Symbol für Apple-Aktien
+symbol = 'AAPL'
+
+# Aktiendaten abrufen
+data = yf.download(symbol, period="1y")
+
+# Liniendiagramm erstellen
+st.line_chart(data['Close'])
+
+# Diagrammbeschreibung
+st.write("Aktienkursverlauf von", symbol)
 
 # Streamlit-Anwendung
 st.title('Apple Inc. Aktienkursprognose')
@@ -101,3 +116,4 @@ if ohlc_data_new:
             st.success("Laut dieser Prognose ist es sinnvoll in die Apple Aktie zu investieren, da der morgige Schlusskurs vermutlich höher ist als der heutige!")
         else:
             st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
+
