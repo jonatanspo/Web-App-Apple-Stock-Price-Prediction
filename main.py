@@ -50,7 +50,7 @@ def scrape_ohlc_data():
         high_price = float(ohlc_data[2].text)
         low_price = float(ohlc_data[3].text)
         close_price = float(ohlc_data[4].text)
-        volume = float(ohlc_data[6].text)  # Handelsvolumen aus der sechsten Spalte
+        volume = float(ohlc_data[5].text)  # Handelsvolumen aus der sechsten Spalte
 
         return open_price, high_price, low_price, close_price, volume
     except RequestException as e:
@@ -62,7 +62,7 @@ def scrape_ohlc_data():
 st.title('Apple Inc. Aktienkursprognose')
 
 # Automatisches Scraping beim Laden der App
-ohlc_data_new = scrape_ohlc_data() or (0.0, 0.0, 0.0, 0.0, 0.0)  
+ohlc_data_new = scrape_ohlc_data()
 if ohlc_data_new:
     st.write("Gescrapte OHLC-Daten:")
     ohlc_table = pd.DataFrame({
