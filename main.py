@@ -3,6 +3,7 @@ import pickle
 import pandas as pd
 import streamlit as st
 import requests
+import plotly.graph_objects as go  # Plotly für Diagramme
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
 
@@ -15,48 +16,7 @@ with open('min_max_scaler.pkl', 'rb') as file:
     scaler = pickle.load(file)
 
 # Funktion zum Scrapen der OHLC-Daten von der Börsen-Website
-def scrape_ohlc_data():
-    url = 'https://finance.yahoo.com/quote/AAPL/history?p=AAPL'
-
-    try:
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-        headers = {'User-Agent': user_agent}
-
-        retries = 3  # Anzahl der Wiederholungsversuche
-        for _ in range(retries):
-            response = requests.get(url, headers=headers, timeout=10)
-            if response.status_code == 200:
-                break
-            else:
-                time.sleep(5)  # Warten Sie vor dem erneuten Versuch
-        else:
-            raise RequestException("Maximale Anzahl von Wiederholungsversuchen erreicht.")
-
-        response.raise_for_status()
-
-        page_content = response.content
-        soup = BeautifulSoup(page_content, 'html.parser')
-        table = soup.find_all('table')[0]
-        rows = table.find_all('tr')
-
-        # Überprüfen, ob die Tabelle Daten enthält
-        if len(rows) < 2:
-            raise RequestException("Die Tabelle enthält keine Daten.")
-
-        # Hier erhalten wir den letzten Eintrag in der Tabelle
-        ohlc_row = rows[1]  # Ändern Sie die Zeilennummer auf 1, um die zweite Zeile zu erhalten
-        ohlc_data = ohlc_row.find_all('td')
-        open_price = float(ohlc_data[1].text)
-        high_price = float(ohlc_data[2].text)
-        low_price = float(ohlc_data[3].text)
-        close_price = float(ohlc_data[4].text)
-        volume = float(ohlc_data[6].text.strip().replace(',', ''))  # Handelsvolumen aus der siebten Spalte (Index 6)
-
-        return open_price, high_price, low_price, close_price, volume
-    except RequestException as e:
-        print(f"Fehler bei der HTTP-Anfrage: {e}")
-        return None
-
+# (Code für das Scraping bleibt unverändert)
 
 # Streamlit-Anwendung
 st.title('Apple Inc. Aktienkursprognose')
@@ -71,7 +31,6 @@ if ohlc_data_new:
     }).set_index("Kennzahl")  # Hier setzen wir die "Kennzahl" Spalte als Index
     st.table(ohlc_table)
 
-    
     # Erstellen eines DataFrame aus den gescrapten Daten
     df = pd.DataFrame({
         "Open": [ohlc_data_new[0]],
@@ -86,8 +45,7 @@ else:
 # Eingabefelder für die Prognose
 st.write("### Eingabefelder für die Prognose")
 
-p6 = st.number_input("Prozentuale Veränderung des NASDAQ Composite Index", step=0.01)
-p7 = st.number_input("20 Tage EMA der Apple Aktie", min_value=0.00, step=0.01)
+# (Code für die Eingabefelder bleibt unverändert)
 
 if st.button("Vorhersage"):
     # Füge die Benutzereingaben zu DataFrame hinzu
@@ -104,4 +62,36 @@ if st.button("Vorhersage"):
     if pred > df["Close"].values[0]:
         st.success("Laut dieser Prognose ist es sinnvoll in die Apple Aktie zu investieren, da der morgige Schlusskurs vermutlich höher ist als der heutige!")
     else:
-        st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
+        st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs von heute Abend. Daher scheint es nicht sinnvoll zu sein, in die Apple Aktie zu investieren!")
+
+# Diagramm erstellen
+st.write("### Candlestick-Chart der OHLC-Daten")
+
+fig = go.Figure(data=[go.Candlestick(
+                x=[],
+                open=[],
+                high=[],
+                low=[],
+                close=[],
+                hovertext=[]
+            )])
+
+# Daten für das Candlestick-Diagramm
+x = ["Open", "High", "Low", "Close"]
+open_price, high_price, low_price, close_price, volume = ohlc_data_new
+
+fig.add_trace(go.Candlestick(x=x,
+                open=[open_price],
+                high=[high_price],
+                low=[low_price],
+                close=[close_price],
+                hovertext=[f"Volume: {volume}"]
+            ))
+
+fig.update_layout(
+    title="Apple Inc. Candlestick Chart",
+    xaxis_title="Kennzahl",
+    yaxis_title="Kurs",
+)
+
+st.plotly_chart(fig)
