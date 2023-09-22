@@ -40,7 +40,7 @@ def scrape_ohlc_data():
         rows = table.find_all('tr')
 
         # Hier erhalten wir den letzten Eintrag in der Tabelle
-        ohlc_row = rows[-1]
+        ohlc_row = rows[0]
         ohlc_data = ohlc_row.find_all('td')
         open_price = float(ohlc_data[1].text)
         high_price = float(ohlc_data[2].text)
