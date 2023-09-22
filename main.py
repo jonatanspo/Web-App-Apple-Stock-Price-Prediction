@@ -1,3 +1,4 @@
+import time
 import pickle
 import pandas as pd
 import streamlit as st
@@ -19,8 +20,18 @@ def scrape_ohlc_data():
     
     try:
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+        headers = {'User-Agent': user_agent}
         
-        response = requests.get(url, headers={'User-Agent': user_agent}, timeout=10)
+        retries = 3  # Anzahl der Wiederholungsversuche
+        for _ in range(retries):
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code == 200:
+                break
+            else:
+                time.sleep(5)  # Warten Sie vor dem erneuten Versuch
+        else:
+            raise RequestException("Maximale Anzahl von Wiederholungsversuchen erreicht.")
+
         response.raise_for_status()
         
         page_content = response.content
@@ -35,7 +46,7 @@ def scrape_ohlc_data():
         close_price = float(ohlc_data[4].text)
         return open_price, high_price, low_price, close_price
     except RequestException as e:
-        st.error(f"Fehler bei der HTTP-Anfrage: {e}")
+        print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
 
 # Streamlit-Anwendung
