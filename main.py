@@ -38,7 +38,7 @@ def scrape_ohlc_data():
         soup = BeautifulSoup(page_content, 'html.parser')
         table = soup.find_all('table')[0]
         rows = table.find_all('tr')
-        ohlc_row = rows[2]
+        ohlc_row = rows[2]  # Ändern Sie die Zeilennummer auf 2, um die zweite Zeile zu erhalten
         ohlc_data = ohlc_row.find_all('td')
         open_price = float(ohlc_data[1].text)
         high_price = float(ohlc_data[2].text)
@@ -53,17 +53,15 @@ def scrape_ohlc_data():
 st.title('Apple Inc. Aktienkursprognose')
 
 # Automatisches Scraping beim Laden der App
-st.write("Scraping der Daten...")
 ohlc_data_new = scrape_ohlc_data()    
 if ohlc_data_new:
-    st.write("Scraping abgeschlossen!")
-    st.write("Bereit für die Prognose.")        
-    # Anzeige der gescrapten Daten oben auf der Seite
+    # Anzeige der gescrapten Daten in einer Tabelle
     st.write("Gescrapte OHLC-Daten:")
-    st.write("Open: {:.2f}".format(ohlc_data_new[0]))
-    st.write("High: {:.2f}".format(ohlc_data_new[1]))
-    st.write("Low: {:.2f}".format(ohlc_data_new[2]))
-    st.write("Close: {:.2f}".format(ohlc_data_new[3]))
+    ohlc_table = pd.DataFrame({
+        "Kennzahl": ["Open", "High", "Low", "Close"],
+        "Wert": ohlc_data_new
+    })
+    st.table(ohlc_table)
     
     # Erstellen eines DataFrame aus den gescrapten Daten
     df = pd.DataFrame({
