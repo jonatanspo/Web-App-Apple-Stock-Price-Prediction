@@ -103,20 +103,26 @@ if ohlc_data_new:
         else:
             st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
 
-candlestick_fig = go.Figure(data=[go.Candlestick(
-    x=df.index,
-    open=df['Open'],
-    high=df['High'],
-    low=df['Low'],
-    close=df['Close'],
-    name="Candlesticks"
-)])
+# Create a line chart for Apple stock price changes
+fig = go.Figure()
 
-candlestick_fig.update_layout(
-    title="Candlestick Chart for Apple Stock",
-    xaxis_title="Date",
+# Add a trace for each OHLC data point
+fig.add_trace(go.Scatter(x=df.index, y=df['Open'], mode='lines', name='Open', line=dict(color='blue')))
+fig.add_trace(go.Scatter(x=df.index, y=df['High'], mode='lines', name='High', line=dict(color='green')))
+fig.add_trace(go.Scatter(x=df.index, y=df['Low'], mode='lines', name='Low', line=dict(color='red')))
+fig.add_trace(go.Scatter(x=df.index, y=df['Close'], mode='lines', name='Close', line=dict(color='purple')))
+
+# Customize the chart layout
+fig.update_layout(
+    title="Apple Stock Price Changes Over Time",
+    xaxis_title="Time",
     yaxis_title="Price",
-    xaxis_rangeslider_visible=True
+    xaxis_rangeslider_visible=True,
+    plot_bgcolor='white',  # Background color
+    margin=dict(l=20, r=20, t=40, b=20)  # Margins
 )
 
-st.plotly_chart(candlestick_fig)
+fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')  # X-axis gridlines
+fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')  # Y-axis gridlines
+
+st.plotly_chart(fig)
