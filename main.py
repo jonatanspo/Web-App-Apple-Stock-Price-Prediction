@@ -5,6 +5,7 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
+import yfinance as yf  # yfinance für Aktiendaten
 
 # Import des trainierten SVR-Modells
 with open('model_svr.pkl', 'rb') as file:
