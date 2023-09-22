@@ -58,7 +58,6 @@ def scrape_ohlc_data():
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
 
-
 # Streamlit-Anwendung
 st.title('Apple Inc. Aktienkursprognose')
 
