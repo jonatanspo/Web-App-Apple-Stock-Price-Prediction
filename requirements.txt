@@ -3,4 +3,5 @@ scikit-learn
 requests 
 streamlit
 beautifulsoup4
-yfinance
+mplfinance
+matplotlib

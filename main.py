@@ -5,6 +5,8 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
+import matplotlib.pyplot as plt
+from mplfinance.original_flavor import candlestick_ohlc
 
 # Import des trainierten SVR-Modells
 with open('model_svr.pkl', 'rb') as file:
@@ -102,3 +104,13 @@ if ohlc_data_new:
         else:
             st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
 
+ohlc = df[['Open', 'High', 'Low', 'Close']]
+
+fig, ax = plt.subplots()
+candlestick_ohlc(ax, ohlc.values, width=0.6, colorup='g', colordown='r')
+
+ax.set_title("Candlestick Chart für Apple Aktienkurs")
+ax.set_xlabel("Datum")
+ax.set_ylabel("Preis")
+
+st.pyplot(fig)
