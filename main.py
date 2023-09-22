@@ -5,7 +5,6 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
-import yfinance as yf  # yfinance für Aktiendaten
 
 # Import des trainierten SVR-Modells
 with open('model_svr.pkl', 'rb') as file:
@@ -58,21 +57,6 @@ def scrape_ohlc_data():
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
     
-# Streamlit-Anwendung
-st.title('Apple Inc. Aktienkursverlauf')
-
-# Symbol für Apple-Aktien
-symbol = 'AAPL'
-
-# Aktiendaten abrufen
-data = yf.download(symbol, period="1y")
-
-# Liniendiagramm erstellen
-st.line_chart(data['Close'])
-
-# Diagrammbeschreibung
-st.write("Aktienkursverlauf von", symbol)
-
 # Streamlit-Anwendung
 st.title('Apple Inc. Aktienkursprognose')
 
