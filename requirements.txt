@@ -1,6 +1,5 @@
 pandas 
 scikit-learn
-SVR
 requests 
 streamlit
 beautifulsoup4
