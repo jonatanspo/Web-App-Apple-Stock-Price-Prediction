@@ -16,13 +16,13 @@ with open('min_max_scaler.pkl', 'rb') as file:
 # Funktion zum Scrapen der OHLC-Daten von der Börsen-Website
 def scrape_ohlc_data():
     url = 'https://finance.yahoo.com/quote/AAPL/history?p=AAPL'
-
-
     
     try:
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
-        response = requests.get(url, timeout=10)  # Timeout auf 10 Sekunden gesetzt
-        response.raise_for_status()  # Wir überprüfen, ob die Anfrage erfolgreich war
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+        
+        response = requests.get(url, headers={'User-Agent': user_agent}, timeout=10)
+        response.raise_for_status()
+        
         page_content = response.content
         soup = BeautifulSoup(page_content, 'html.parser')
         table = soup.find_all('table')[0]
