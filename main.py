@@ -62,7 +62,7 @@ def scrape_ohlc_data():
 st.title('Apple Inc. Aktienkursprognose')
 
 # Automatisches Scraping beim Laden der App
-ohlc_data_new = scrape_ohlc_data()    
+ohlc_data_new = scrape_ohlc_data() or (0.0, 0.0, 0.0, 0.0, 0.0)  
 if ohlc_data_new:
     st.write("Gescrapte OHLC-Daten:")
     ohlc_table = pd.DataFrame({
