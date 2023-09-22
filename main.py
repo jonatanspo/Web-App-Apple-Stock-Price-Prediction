@@ -5,7 +5,7 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
-import matplotlib.pypplot as plt
+import matplotlib.pyplot as plt
 
 # Import des trainierten SVR-Modells
 with open('model_svr.pkl', 'rb') as file:
