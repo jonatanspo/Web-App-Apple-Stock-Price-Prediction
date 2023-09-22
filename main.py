@@ -50,7 +50,7 @@ def scrape_ohlc_data():
         high_price = float(ohlc_data[2].text)
         low_price = float(ohlc_data[3].text)
         close_price = float(ohlc_data[4].text)
-        volume = float(ohlc_data[6].text)  # Handelsvolumen aus der sechsten Spalte
+        volume = float(ohlc_data[5].text)  # Handelsvolumen aus der sechsten Spalte (Index 5)
 
         return open_price, high_price, low_price, close_price, volume
     except RequestException as e:
