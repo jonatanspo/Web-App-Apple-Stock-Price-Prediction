@@ -3,12 +3,12 @@ import pickle
 import pandas as pd
 import streamlit as st
 import requests
-import plotly.graph_objects as go  # Plotly für Diagramme
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
+import plotly.graph_objects as go
 
 # Import des trainierten SVR-Modells
-with open('model_svr.pkl', 'rb') as file: 
+with open('model_svr.pkl', 'rb') as file:
     svr_model = pickle.load(file)
 
 # Import des MinMaxScaler
@@ -58,6 +58,7 @@ def scrape_ohlc_data():
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
 
+
 # Streamlit-Anwendung
 st.title('Apple Inc. Aktienkursprognose')
 
@@ -79,60 +80,45 @@ if ohlc_data_new:
         "Close": [ohlc_data_new[3]],
         "Volume": [ohlc_data_new[4]]
     })
+
+    # Eingabefelder für die Prognose
+    st.write("### Eingabefelder für die Prognose")
+
+    p6 = st.number_input("Prozentuale Veränderung des NASDAQ Composite Index", step=0.01)
+    p7 = st.number_input("20 Tage EMA der Apple Aktie", min_value=0.00, step=0.01)
+
+    if st.button("Vorhersage"):
+        # Füge die Benutzereingaben zu DataFrame hinzu
+        df["IXIC"] = [p6]
+        df["ema_20"] = [p7]
+
+        # Anwendung des MinMaxScaler auf die eingegebenen Daten
+        input_data_scaled = scaler.transform(df)
+
+        # Vorhersage mit dem Modell
+        pred = svr_model.predict(input_data_scaled)
+        st.success("Der Schlusskurs der Apple Aktie wird morgen Abend {:.2f}$ betragen".format(pred[0]))
+
+        if pred > df["Close"].values[0]:
+            st.success("Laut dieser Prognose ist es sinnvoll in die Apple Aktie zu investieren, da der morgige Schlusskurs vermutlich höher ist als der heutige!")
+        else:
+            st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
+
+    # Candlestick-Diagramm
+    fig = go.Figure(data=[go.Candlestick(x=df.index,
+                open=df['Open'],
+                high=df['High'],
+                low=df['Low'],
+                close=df['Close'])])
+
+    fig.update_layout(
+        title="Candlestick Chart für Apple Aktienkurs",
+        xaxis_title="Datum",
+        yaxis_title="Preis",
+        xaxis_rangeslider_visible=True
+    )
+
+    st.plotly_chart(fig)
+
 else:
     st.error("Fehler beim Scraping der Daten.")
-
-# Eingabefelder für die Prognose
-st.write("### Eingabefelder für die Prognose")
-
-p6 = st.number_input("Prozentuale Veränderung des NASDAQ Composite Index", step=0.01)
-p7 = st.number_input("20 Tage EMA der Apple Aktie", min_value=0.00, step=0.01)
-
-if st.button("Vorhersage"):
-    # Füge die Benutzereingaben zu DataFrame hinzu
-    df["IXIC"] = [p6]
-    df["ema_20"] = [p7]
-
-    # Anwendung des MinMaxScaler auf die eingegebenen Daten
-    input_data_scaled = scaler.transform(df)
-
-    # Vorhersage mit dem Modell
-    pred = svr_model.predict(input_data_scaled)
-    st.success("Der Schlusskurs der Apple Aktie wird morgen Abend {:.2f}$ betragen".format(pred[0]))
-
-    if pred > df["Close"].values[0]:
-        st.success("Laut dieser Prognose ist es sinnvoll in die Apple Aktie zu investieren, da der morgige Schlusskurs vermutlich höher ist als der heutige!")
-    else:
-        st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs von heute Abend. Daher scheint es nicht sinnvoll zu sein, in die Apple Aktie zu investieren!")
-
-# Diagramm erstellen
-st.write("### Candlestick-Chart der OHLC-Daten")
-
-fig = go.Figure(data=[go.Candlestick(
-                x=[],
-                open=[],
-                high=[],
-                low=[],
-                close=[],
-                hovertext=[]
-            )])
-
-# Daten für das Candlestick-Diagramm
-x = ["Open", "High", "Low", "Close"]
-open_price, high_price, low_price, close_price, volume = ohlc_data_new
-
-fig.add_trace(go.Candlestick(x=x,
-                open=[open_price],
-                high=[high_price],
-                low=[low_price],
-                close=[close_price],
-                hovertext=[f"Volume: {volume}"]
-            ))
-
-fig.update_layout(
-    title="Apple Inc. Candlestick Chart",
-    xaxis_title="Kennzahl",
-    yaxis_title="Kurs",
-)
-
-st.plotly_chart(fig)
