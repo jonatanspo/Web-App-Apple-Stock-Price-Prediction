@@ -39,8 +39,12 @@ def scrape_ohlc_data():
         table = soup.find_all('table')[0]
         rows = table.find_all('tr')
 
+        # Überprüfen, ob die Tabelle Daten enthält
+        if len(rows) < 2:
+            raise RequestException("Die Tabelle enthält keine Daten.")
+
         # Hier erhalten wir den letzten Eintrag in der Tabelle
-        ohlc_row = rows[0]
+        ohlc_row = rows[1]  # Ändern Sie die Zeilennummer auf 1, um die zweite Zeile zu erhalten
         ohlc_data = ohlc_row.find_all('td')
         open_price = float(ohlc_data[1].text)
         high_price = float(ohlc_data[2].text)
@@ -100,4 +104,4 @@ if st.button("Vorhersage"):
     if pred > df["Close"].values[0]:
         st.success("Laut dieser Prognose ist es sinnvoll in die Apple Aktie zu investieren, da der morgige Schlusskurs vermutlich höher ist als der heutige!")
     else:
-        st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs von heute Abend. Daher scheint es nicht sinnvoll zu sein, in die Apple Aktie zu investieren!")
+        st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
