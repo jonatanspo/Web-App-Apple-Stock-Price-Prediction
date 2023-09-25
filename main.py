@@ -188,33 +188,23 @@ if ohlc_data_new & nasdaq:
             st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
 
 # Sample OHLC data (replace with your actual data)
-data = {
-    'Date': ['2023-09-20', '2023-09-21', '2023-09-22'],
-    'Open': [175.32, 175.67, 174.67],
-    'High': [177.42, 176.32, 177.08],
-    'Low': [174.21, 174.21, 174.05],
-    'Close': [177.01, 174.56, 174.79],
-    'Volume': [60000000, 58000000, 55110610]  # Volume in millions
-}
-
-df = pd.DataFrame(data)
-df['Date'] = pd.to_datetime(df['Date'])
+time_intervals = [0, 1, 2, 3]
 
 # Create a new figure
 fig, ax1 = plt.subplots(figsize=(10, 6))
 
 # Plot the OHLC data
-ax1.plot(df['Date'], df['Open'], 'g-', label='Open', linewidth=2)
-ax1.plot(df['Date'], df['Close'], 'r-', label='Close', linewidth=2)
-ax1.fill_between(df['Date'], df['Open'], df['Close'], where=df['Open'] > df['Close'], facecolor='red', alpha=0.3)
-ax1.fill_between(df['Date'], df['Open'], df['Close'], where=df['Open'] <= df['Close'], facecolor='green', alpha=0.3)
+ax1.plot(time_intervals, df['Open'], 'g-', label='Open', linewidth=2)
+ax1.plot(time_intervals, df['Close'], 'r-', label='Close', linewidth=2)
+ax1.fill_between(time_intervals, df['Open'], df['Close'], where=df['Open'] > df['Close'], facecolor='red', alpha=0.3)
+ax1.fill_between(time_intervals, df['Open'], df['Close'], where=df['Open'] <= df['Close'], facecolor='green', alpha=0.3)
 
 # Add volume bars (assuming 'Volume' is in millions)
 ax2 = ax1.twinx()
-ax2.bar(df['Date'], df['Volume'], color='blue', alpha=0.3, width=0.2, label='Volume (Millions)')
+ax2.bar(time_intervals, df['Volume'], color='blue', alpha=0.3, width=0.2, label='Volume (Millions)')
 
 # Customize the plot
-ax1.set_xlabel('Date')
+ax1.set_xlabel('Heute')
 ax1.set_ylabel('Price')
 ax2.set_ylabel('Volume (Millions)')
 plt.title('OHLC Data with Volume')
