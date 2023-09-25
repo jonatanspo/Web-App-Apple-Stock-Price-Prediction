@@ -58,7 +58,7 @@ def scrape_ohlc_data():
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
     
- def scrape_nasdaq(): 
+def scrape_nasdaq():
     url = 'https://finance.yahoo.com/quote/%5EIXIC/history?p=%5EIXIC'
 
     try:
@@ -80,15 +80,15 @@ def scrape_ohlc_data():
         page_content = response.content
         soup = BeautifulSoup(page_content, 'html.parser')
         table_nasdaq = soup.find_all('table')[0]
-        rows = table_nasdaq.find_all('tr')
+        rows_nasdaq = table_nasdaq.find_all('tr')
 
         # Überprüfen, ob die Tabelle Daten enthält
-        if len(rows) < 2:
+        if len(rows_nasdaq) < 2:
             raise RequestException("Die Tabelle enthält keine Daten.")
 
         # Hier erhalten wir den letzten Eintrag in der Tabelle
-        nasdaq_row_latest = rows[1]
-        nasdaq_row_previous = rows[2]
+        nasdaq_row_latest = rows_nasdaq[1]
+        nasdaq_row_previous = rows_nasdaq[2]
         nasdaq_data_latest = nasdaq_row_latest.find_all('td')
         nasdaq_data_previous = nasdaq_row_previous.find_all('td')
         latest_close_price = float(nasdaq_data_latest[4].text)
@@ -123,14 +123,10 @@ def scrape_ema_20():
         table_ema_20 = soup.find('table',{"class":"stock-info-table"})
         rows_ema = table_ema_20.find_all('tr')
 
-        # Überprüfen, ob die Tabelle Daten enthält
-        if len(rows) < 2:
-            raise RequestException("Die Tabelle enthält keine Daten.")
-
         # Hier erhalten wir den letzten Eintrag in der Tabelle
         ema_20_row = rows_ema[2]
-        ema_20_data = nasdaq_row_latest.find_all('td')
-        ema_20 = float(ema_20_data[0].text))
+        ema_20_data = ema_20_row.find_all('td')
+        ema_20 = float(ema_20_data[0].text)
 
         return ema_20
     except RequestException as e:
@@ -138,8 +134,8 @@ def scrape_ema_20():
         return None
      
 
-def calculate_nasdaq_change(latest_close_price, previous_close_price):
-    result = ((latest_close_price - previous_close_price) / previous_close_price) * 100
+def calculate_nasdaq_change(x1, x2):
+    result = float(((x1 - x2) / x2) * 100)
     return result
 
 
@@ -149,7 +145,7 @@ st.title('Apple Inc. Aktienkursprognose')
 # Automatisches Scraping beim Laden der App
 ohlc_data_new = scrape_ohlc_data()
 nasdaq = scrape_nasdaq()
-nasdaq_change = calculate_nasdaq_change()
+nasdaq_change = calculate_nasdaq_change(latest_close_price, previous_close_price)
 ema = scrape_ema_20()
 
 if ohlc_data_new & nasdaq:
@@ -166,9 +162,9 @@ if ohlc_data_new & nasdaq:
         "High": [ohlc_data_new[1]],
         "Low": [ohlc_data_new[2]],
         "Close": [ohlc_data_new[3]],
-        "Volume": [ohlc_data_new[4]]
-        "IXIC": [nasdaq_change]
-        "ema_20": [ema]
+        "Volume": [ohlc_data_new[4]],
+        "IXIC": [nasdaq_change],
+        "ema_20": [ema],
     })
 
     if st.button("Vorhersage"):
