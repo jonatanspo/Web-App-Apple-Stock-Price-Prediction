@@ -94,11 +94,13 @@ def scrape_nasdaq():
         latest_close_price = float(nasdaq_data_latest[4].text)
         previous_close_price = float(nasdaq_data_previous[4].text)
 
-        return latest_close_price, previous_close_price
+        result = float(((latest_close_price - previous_close_price) / previous_close_price) * 100)
+
+        return result
     except RequestException as e:
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
-
+    
 def scrape_ema_20(): 
     url = 'https://financhill.com/stock-price-chart/aapl-technical-analysis'
 
@@ -133,19 +135,12 @@ def scrape_ema_20():
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
      
-
-def calculate_nasdaq_change(x1, x2):
-    result = float(((x1 - x2) / x2) * 100)
-    return result
-
-
 # Streamlit-Anwendung
 st.title('Apple Inc. Aktienkursprognose')
 
 # Automatisches Scraping beim Laden der App
 ohlc_data_new = scrape_ohlc_data()
 nasdaq = scrape_nasdaq()
-nasdaq_change = calculate_nasdaq_change(latest_close_price, previous_close_price)
 ema = scrape_ema_20()
 
 if ohlc_data_new & nasdaq:
@@ -163,7 +158,7 @@ if ohlc_data_new & nasdaq:
         "Low": [ohlc_data_new[2]],
         "Close": [ohlc_data_new[3]],
         "Volume": [ohlc_data_new[4]],
-        "IXIC": [nasdaq_change],
+        "IXIC": [nasdaq],
         "ema_20": [ema],
     })
 
