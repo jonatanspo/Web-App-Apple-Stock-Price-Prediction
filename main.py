@@ -91,9 +91,12 @@ def scrape_nasdaq():
         nasdaq_row_previous = rows_nasdaq[2]
         nasdaq_data_latest = nasdaq_row_latest.find_all('td')
         nasdaq_data_previous = nasdaq_row_previous.find_all('td')
-        latest_close_price = float(nasdaq_data_latest[4].text)
-        previous_close_price = float(nasdaq_data_previous[4].text)
-
+        latest_close_price_cleaned_string = nasdaq_data_latest[4].text.replace(',', '')
+        latest_close_price = float(latest_close_price_cleaned_string)
+        previous_close_price_cleaned_string = nasdaq_data_previous[4].text.replace(',', '')
+        previous_close_price = float(previous_close_price_cleaned_string)
+        
+        # calculation of changes in IXIC
         result = float(((latest_close_price - previous_close_price) / previous_close_price) * 100)
 
         return result
