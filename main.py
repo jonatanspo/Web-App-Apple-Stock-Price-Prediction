@@ -188,28 +188,26 @@ if ohlc_data_new:
             st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
 
 # Sample OHLC data (replace with your actual data)
-time_intervals = [0, 1, 2, 3]
+time_intervals = [0]  # Dieser Wert repräsentiert den Zeitpunkt des Tages (kann angepasst werden)
+ohlc_data = [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3]]
 
 # Create a new figure
 fig, ax1 = plt.subplots(figsize=(10, 6))
 
 # Plot the OHLC data
-ax1.plot(time_intervals, df['Open'], 'g-', label='Open', linewidth=2)
-ax1.plot(time_intervals, df['Close'], 'r-', label='Close', linewidth=2)
-ax1.fill_between(time_intervals, df['Open'], df['Close'], where=df['Open'] > df['Close'], facecolor='red', alpha=0.3)
-ax1.fill_between(time_intervals, df['Open'], df['Close'], where=df['Open'] <= df['Close'], facecolor='green', alpha=0.3)
+ax1.plot(time_intervals, ohlc_data, 'g-', label='OHLC', linewidth=2)
+ax1.fill_between(time_intervals, ohlc_data, color='green', alpha=0.3)
 
 # Add volume bars (assuming 'Volume' is in millions)
 ax2 = ax1.twinx()
 ax2.bar(time_intervals, df['Volume'], color='blue', alpha=0.3, width=0.2, label='Volume (Millions)')
 
 # Customize the plot
-ax1.set_xlabel('Heute')
-ax1.set_ylabel('Price')
-ax2.set_ylabel('Volume (Millions)')
-plt.title('OHLC Data with Volume')
+ax1.set_xlabel('Zeitpunkt des Tages')
+ax1.set_ylabel('Preis')
+ax2.set_ylabel('Volumen (Millionen)')
+plt.title('OHLC-Daten mit Volumen')
 plt.grid(True)
-fig.autofmt_xdate()  # Format the date axis
 fig.legend(loc='upper left', bbox_to_anchor=(0.13, 0.87))
 
 plt.show()
