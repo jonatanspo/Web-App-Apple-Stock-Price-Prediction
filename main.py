@@ -154,7 +154,7 @@ ohlc_data_new = scrape_ohlc_data()
 nasdaq = scrape_nasdaq()
 ema = scrape_ema_20()
 
-if ohlc_data_new & nasdaq:
+if ohlc_data_new:
     st.write("Gescrapte OHLC-Daten:")
     ohlc_table = pd.DataFrame({
         "Kennzahl": ["Open", "High", "Low", "Close", "Volume", "IXIC", "ema_20"],
