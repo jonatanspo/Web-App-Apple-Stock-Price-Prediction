@@ -158,7 +158,7 @@ if ohlc_data_new & nasdaq:
     st.write("Gescrapte OHLC-Daten:")
     ohlc_table = pd.DataFrame({
         "Kennzahl": ["Open", "High", "Low", "Close", "Volume", "IXIC", "ema_20"],
-        "Wert": ohlc_data_new, nasdaq, ema
+        "Wert": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], nasdaq, ema]
     }).set_index("Kennzahl")  # Hier setzen wir die "Kennzahl" Spalte als Index
     st.table(ohlc_table)
 
