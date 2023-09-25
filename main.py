@@ -58,12 +58,101 @@ def scrape_ohlc_data():
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
     
+ def scrape_nasdaq(): 
+    url = 'https://finance.yahoo.com/quote/%5EIXIC/history?p=%5EIXIC'
+
+    try:
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+        headers = {'User-Agent': user_agent}
+
+        retries = 3  # Anzahl der Wiederholungsversuche
+        for _ in range(retries):
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code == 200:
+                break
+            else:
+                time.sleep(5)  # Warten Sie vor dem erneuten Versuch
+        else:
+            raise RequestException("Maximale Anzahl von Wiederholungsversuchen erreicht.")
+
+        response.raise_for_status()
+
+        page_content = response.content
+        soup = BeautifulSoup(page_content, 'html.parser')
+        table_nasdaq = soup.find_all('table')[0]
+        rows = table_nasdaq.find_all('tr')
+
+        # Überprüfen, ob die Tabelle Daten enthält
+        if len(rows) < 2:
+            raise RequestException("Die Tabelle enthält keine Daten.")
+
+        # Hier erhalten wir den letzten Eintrag in der Tabelle
+        nasdaq_row_latest = rows[1]
+        nasdaq_row_previous = rows[2]
+        nasdaq_data_latest = nasdaq_row_latest.find_all('td')
+        nasdaq_data_previous = nasdaq_row_previous.find_all('td')
+        latest_close_price = float(nasdaq_data_latest[4].text)
+        previous_close_price = float(nasdaq_data_previous[4].text)
+
+        return latest_close_price, previous_close_price
+    except RequestException as e:
+        print(f"Fehler bei der HTTP-Anfrage: {e}")
+        return None
+
+def scrape_ema_20(): 
+    url = 'https://financhill.com/stock-price-chart/aapl-technical-analysis'
+
+    try:
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+        headers = {'User-Agent': user_agent}
+
+        retries = 3  # Anzahl der Wiederholungsversuche
+        for _ in range(retries):
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code == 200:
+                break
+            else:
+                time.sleep(5)  # Warten Sie vor dem erneuten Versuch
+        else:
+            raise RequestException("Maximale Anzahl von Wiederholungsversuchen erreicht.")
+
+        response.raise_for_status()
+
+        page_content = response.content
+        soup = BeautifulSoup(page_content, 'html.parser')
+        table_ema_20 = soup.find('table',{"class":"stock-info-table"})
+        rows_ema = table_ema_20.find_all('tr')
+
+        # Überprüfen, ob die Tabelle Daten enthält
+        if len(rows) < 2:
+            raise RequestException("Die Tabelle enthält keine Daten.")
+
+        # Hier erhalten wir den letzten Eintrag in der Tabelle
+        ema_20_row = rows_ema[2]
+        ema_20_data = nasdaq_row_latest.find_all('td')
+        ema_20 = float(ema_20_data[0].text))
+
+        return ema_20
+    except RequestException as e:
+        print(f"Fehler bei der HTTP-Anfrage: {e}")
+        return None
+     
+
+def calculate_nasdaq_change(latest_close_price, previous_close_price):
+    result = ((latest_close_price - previous_close_price) / previous_close_price) * 100
+    return result
+
+
 # Streamlit-Anwendung
 st.title('Apple Inc. Aktienkursprognose')
 
 # Automatisches Scraping beim Laden der App
 ohlc_data_new = scrape_ohlc_data()
-if ohlc_data_new:
+nasdaq = scrape_nasdaq()
+nasdaq_change = calculate_nasdaq_change()
+ema = scrape_ema_20()
+
+if ohlc_data_new & nasdaq:
     st.write("Gescrapte OHLC-Daten:")
     ohlc_table = pd.DataFrame({
         "Kennzahl": ["Open", "High", "Low", "Close", "Volume"],
@@ -78,19 +167,12 @@ if ohlc_data_new:
         "Low": [ohlc_data_new[2]],
         "Close": [ohlc_data_new[3]],
         "Volume": [ohlc_data_new[4]]
+        "IXIC": [nasdaq_change]
+        "ema_20": [ema]
     })
 
-    # Eingabefelder für die Prognose
-    st.write("### Eingabefelder für die Prognose")
-
-    p6 = st.number_input("Prozentuale Veränderung des NASDAQ Composite Index", step=0.01)
-    p7 = st.number_input("20 Tage EMA der Apple Aktie", min_value=0.00, step=0.01)
-
     if st.button("Vorhersage"):
-        # Füge die Benutzereingaben zu DataFrame hinzu
-        df["IXIC"] = [p6]
-        df["ema_20"] = [p7]
-
+        
         # Anwendung des MinMaxScaler auf die eingegebenen Daten
         input_data_scaled = scaler.transform(df)
 
