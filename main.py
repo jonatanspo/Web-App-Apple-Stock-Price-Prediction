@@ -16,7 +16,7 @@ with open('min_max_scaler.pkl', 'rb') as file:
 
 # Funktion zum Scrapen der OHLC-Daten von der Börsen-Website
 def scrape_ohlc_data():
-    url = 'https://finance.yahoo.com/quote/AAPL/history?p=AAPL'
+    url = 'https://investor.apple.com/stock-price/default.aspx'
 
     try:
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
@@ -36,23 +36,30 @@ def scrape_ohlc_data():
 
         page_content = response.content
         soup = BeautifulSoup(page_content, 'html.parser')
-        table = soup.find_all('table')[0]
-        rows = table.find_all('tr')
 
-        # Überprüfen, ob die Tabelle Daten enthält
-        if len(rows) < 2:
-            raise RequestException("Die Tabelle enthält keine Daten.")
+        # Die gewünschten <span>-Elemente können durch die Klassenattribute ausgewählt werden
+        open_price_span = soup.find('span', class_='module-stock_open')
+        high_price_span = soup.find('span', class_='module-stock_high')
+        low_price_span = soup.find('span', class_='module-stock_low')
+        close_price_span = soup.find('span', class_='module-stock_value')
+        volume_span = soup.find('span', class_='module-stock_volume')
 
-        # Hier erhalten wir den letzten Eintrag in der Tabelle
-        ohlc_row = rows[1]  # Ändern Sie die Zeilennummer auf 1, um die zweite Zeile zu erhalten
-        ohlc_data = ohlc_row.find_all('td')
-        open_price = float(ohlc_data[1].text)
-        high_price = float(ohlc_data[2].text)
-        low_price = float(ohlc_data[3].text)
-        close_price = float(ohlc_data[4].text)
-        volume = float(ohlc_data[6].text.strip().replace(',', ''))  # Handelsvolumen aus der siebten Spalte (Index 6)
+        # Überprüfen, ob die <span>-Elemente gefunden wurden
+        if open_price_span and high_price_span and low_price_span and close_price_span and volume_span:
+            # Extrahieren Sie die Textinhalte und konvertieren Sie sie in die gewünschten Datentypen
+            open_price = float(open_price_span.text)
+            high_price = float(high_price_span.text)
+            low_price = float(low_price_span.text)
+            close_price = float(close_price_span.text)
+            volume = float(volume_span.text.strip().replace(',', ''))  # Handelsvolumen entfernen Sie Tausendertrennzeichen und konvertieren Sie es in eine Gleitkommazahl
+            volume *= 1_000  # Umrechnung des Volumens in Millionen
 
-        return open_price, high_price, low_price, close_price, volume
+            print(open_price, high_price, low_price, close_price, volume)
+
+            return open_price, high_price, low_price, close_price, volume
+        else:
+            print("Die benötigten <span>-Elemente wurden nicht gefunden.")
+            return None
     except RequestException as e:
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
