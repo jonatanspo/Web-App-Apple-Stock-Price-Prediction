@@ -162,7 +162,7 @@ if ohlc_data_new:
     
     ohlc_table = pd.DataFrame({
         "Kennzahl": ["Open", "High", "Low", "Close", "Volume", "IXIC", "ema_20"],
-        "Wert": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list, ema_list]
+        "Wert": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list[0], ema_list[0]]
     }).set_index("Kennzahl")  # Hier setzen wir die "Kennzahl" Spalte als Index
     st.table(ohlc_table)
 
@@ -173,8 +173,8 @@ if ohlc_data_new:
         "Low": [ohlc_data_new[2]],
         "Close": [ohlc_data_new[3]],
         "Volume": [ohlc_data_new[4]],
-        "IXIC": nasdaq_list[0],
-        "ema_20": ema_list[0],
+        "IXIC": [nasdaq_list[0]],
+        "ema_20": [ema_list[0]],
     })
 
 
