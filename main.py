@@ -83,8 +83,8 @@ def scrape_nasdaq():
         rows_nasdaq = table_nasdaq.find_all('tr')
 
         # Überprüfen, ob die Tabelle Daten enthält
-        if len(rows_nasdaq) < 2:
-            raise RequestException("Die Tabelle enthält keine Daten.")
+        if len(rows_nasdaq) < 3:  # Die Tabelle sollte mindestens 3 Zeilen haben (Header + 2 Dateneinträge)
+            raise RequestException("Die Tabelle enthält keine ausreichenden Daten.")
 
         # Hier erhalten wir den letzten Eintrag in der Tabelle
         nasdaq_row_latest = rows_nasdaq[1]
@@ -96,13 +96,21 @@ def scrape_nasdaq():
         previous_close_price_cleaned_string = nasdaq_data_previous[4].text.replace(',', '')
         previous_close_price = float(previous_close_price_cleaned_string)
         
-        # calculation of changes in IXIC
-        result = float(((latest_close_price - previous_close_price) / previous_close_price) * 100)
+        # Berechnung der Änderung in IXIC
+        result = ((latest_close_price - previous_close_price) / previous_close_price) * 100
 
         return result
     except RequestException as e:
         print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
+
+# Testen Sie die Funktion
+change_percentage = scrape_nasdaq()
+if change_percentage is not None:
+    print(f"Änderungsprozentsatz in IXIC: {change_percentage:.2f}%")
+else:
+    print("Fehler beim Abrufen der Daten.")
+
     
 def scrape_ema_20(): 
     url = 'https://financhill.com/stock-price-chart/aapl-technical-analysis'
