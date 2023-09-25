@@ -192,28 +192,3 @@ if ohlc_data_new:
             st.success("Laut dieser Prognose ist es sinnvoll in die Apple Aktie zu investieren, da der morgige Schlusskurs vermutlich höher ist als der heutige!")
         else:
             st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
-
-# Sample OHLC data (replace with your actual data)
-time_intervals = [0]  # Dieser Wert repräsentiert den Zeitpunkt des Tages (kann angepasst werden)
-ohlc_data_for_plot = [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3]]
-
-# Create a new figure
-fig, ax1 = plt.subplots(figsize=(10, 6))
-
-# Plot the OHLC data
-ax1.plot(time_intervals, ohlc_data_for_plot, 'g-', label='OHLC', linewidth=2)
-ax1.fill_between(time_intervals, ohlc_data_for_plot, color='green', alpha=0.3)
-
-# Add volume bars (assuming 'Volume' is in millions)
-ax2 = ax1.twinx()
-ax2.bar(time_intervals, df['Volume'], color='blue', alpha=0.3, width=0.2, label='Volume (Millions)')
-
-# Customize the plot
-ax1.set_xlabel('Zeitpunkt des Tages')
-ax1.set_ylabel('Preis')
-ax2.set_ylabel('Volumen (Millionen)')
-plt.title('OHLC-Daten mit Volumen')
-plt.grid(True)
-fig.legend(loc='upper left', bbox_to_anchor=(0.13, 0.87))
-
-plt.show()
