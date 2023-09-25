@@ -157,8 +157,8 @@ ema = scrape_ema_20()
 if ohlc_data_new & nasdaq:
     st.write("Gescrapte OHLC-Daten:")
     ohlc_table = pd.DataFrame({
-        "Kennzahl": ["Open", "High", "Low", "Close", "Volume"],
-        "Wert": ohlc_data_new
+        "Kennzahl": ["Open", "High", "Low", "Close", "Volume", "IXIC", "ema_20"],
+        "Wert": ohlc_data_new, nasdaq, ema
     }).set_index("Kennzahl")  # Hier setzen wir die "Kennzahl" Spalte als Index
     st.table(ohlc_table)
 
