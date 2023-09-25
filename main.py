@@ -96,7 +96,7 @@ def scrape_nasdaq():
         previous_close_price = float(previous_close_price_cleaned_string)
         
         # Berechnung der Änderung in IXIC
-        result = ((latest_close_price - previous_close_price) / previous_close_price) * 100
+        result = ((latest_close_price - previous_close_price) / previous_close_price)*100
 
         return result
     except RequestException as e:
