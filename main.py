@@ -156,9 +156,14 @@ ema = scrape_ema_20()
 
 if ohlc_data_new:
     st.write("Gescrapte OHLC-Daten:")
+    
+    # Ändern Sie nasdaq und ema in Listen mit einem einzigen Element
+    nasdaq_list = [nasdaq]
+    ema_list = [ema]
+    
     ohlc_table = pd.DataFrame({
         "Kennzahl": ["Open", "High", "Low", "Close", "Volume", "IXIC", "ema_20"],
-        "Wert": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], nasdaq, ema]
+        "Wert": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list, ema_list]
     }).set_index("Kennzahl")  # Hier setzen wir die "Kennzahl" Spalte als Index
     st.table(ohlc_table)
 
@@ -169,9 +174,10 @@ if ohlc_data_new:
         "Low": [ohlc_data_new[2]],
         "Close": [ohlc_data_new[3]],
         "Volume": [ohlc_data_new[4]],
-        "IXIC": [nasdaq],
-        "ema_20": [ema],
+        "IXIC": [nasdaq_list[0]],
+        "ema_20": [ema_list[0]],
     })
+
 
     if st.button("Vorhersage"):
         
