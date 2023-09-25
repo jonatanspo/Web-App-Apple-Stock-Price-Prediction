@@ -173,8 +173,8 @@ if ohlc_data_new:
         "Low": [ohlc_data_new[2]],
         "Close": [ohlc_data_new[3]],
         "Volume": [ohlc_data_new[4]],
-        "IXIC": [nasdaq_list[0]],
-        "ema_20": [ema_list[0]],
+        "IXIC": nasdaq_list[0],
+        "ema_20": ema_list[0],
     })
 
 
