@@ -21,42 +21,50 @@ def scrape_ohlc_data():
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
         headers = {'User-Agent': user_agent}
 
-        retries = 3  # Number of retry attempts
+        retries = 3  # Anzahl der Wiederholungsversuche
         for _ in range(retries):
             response = requests.get(url, headers=headers, timeout=10)
             if response.status_code == 200:
                 break
             else:
-                time.sleep(5)  # Wait before retrying
+                time.sleep(5)  # Warten Sie vor dem erneuten Versuch
         else:
-            raise RequestException("Maximum number of retry attempts reached.")
+            raise RequestException("Maximale Anzahl von Wiederholungsversuchen erreicht.")
 
         response.raise_for_status()
 
         page_content = response.content
         soup = BeautifulSoup(page_content, 'html.parser')
 
-        # Get the text of the <span> elements for stock information
-        open_price = soup.find('span', text=re.compile(r"Day’s Open\s*")).find_next('span').text
-        high_price = soup.find('span', text="Intraday High").find_next('span').text
-        low_price = soup.find('span', text="Intraday Low").find_next('span').text
-        close_price = soup.find('span', text="Closing Price").find_next('span').text
-        volume = soup.find('span', text="Volume").find_next('span').text
+        # Die gewünschten <span>-Elemente können durch die Klassenattribute ausgewählt werden
+        open_price_span = soup.find('span', class_='module-stock_open')
+        high_price_span = soup.find('span', class_='module-stock_high')
+        low_price_span = soup.find('span', class_='module-stock_low')
+        close_price_span = soup.find('span', class_='module-stock_value')
+        volume_span = soup.find('span', class_='module-stock_volume')
 
-        # Check if values were found
-        if open_price and high_price and low_price and close_price and volume:
-            # Convert volume to a number and adjust the units (if necessary)
-            volume = float(volume.strip().replace(',', '').replace('M', '')) * 1_000_000  # Convert volume from 'M' to a number
+        # Überprüfen, ob die <span>-Elemente gefunden wurden
+        if open_price_span and high_price_span and low_price_span and close_price_span and volume_span:
+            # Extrahieren Sie die Textinhalte und konvertieren Sie sie in die gewünschten Datentypen
+            open_price = float(open_price_span.text)
+            high_price = float(high_price_span.text)
+            low_price = float(low_price_span.text)
+            close_price = float(close_price_span.text)
+            volume = float(volume_span.text.strip().replace(',', ''))  # Handelsvolumen entfernen Sie Tausendertrennzeichen und konvertieren Sie es in eine Gleitkommazahl
+            volume *= 1_000  # Umrechnung des Volumens in Millionen
 
             print(open_price, high_price, low_price, close_price, volume)
 
-            return float(open_price), float(high_price), float(low_price), float(close_price), volume
+            return open_price, high_price, low_price, close_price, volume
         else:
-            print("Required stock information not found.")
+            print("Die benötigten <span>-Elemente wurden nicht gefunden.")
             return None
     except RequestException as e:
-        print(f"Error in HTTP request: {e}")
+        print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
+
+# Beispielaufruf der Funktion
+scrape_ohlc_data()
     
 def scrape_nasdaq():
     url = 'https://finance.yahoo.com/quote/%5EIXIC/history?p=%5EIXIC'
