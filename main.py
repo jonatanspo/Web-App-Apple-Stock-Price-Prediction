@@ -37,7 +37,7 @@ def scrape_ohlc_data():
         soup = BeautifulSoup(page_content, 'html.parser')
 
         # Get the text of the <span> elements for stock information
-        open_price = soup.find('span', text="Day’s Open").find_next('span').text
+        open_price = soup.find('span', text=re.compile(r"Day’s Open\s*")).find_next('span').text
         high_price = soup.find('span', text="Intraday High").find_next('span').text
         low_price = soup.find('span', text="Intraday Low").find_next('span').text
         close_price = soup.find('span', text="Closing Price").find_next('span').text
