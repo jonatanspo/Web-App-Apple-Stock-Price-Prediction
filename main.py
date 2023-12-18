@@ -7,15 +7,21 @@ from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
 
 # Import the trained SVR model
-with open('model_svr.pkl', 'rb') as file:
-    svr_model = pickle.load(file)
+@st.cache(allow_output_mutation=True)
+def load_model(model_path):
+    try:
+        with open(model_path, 'rb') as file:
+            return pickle.load(file)
+    except Exception as e:
+        st.error(f"Failed to load model: {e}")
+        return None
 
-# Import the MinMaxScaler
-with open('min_max_scaler.pkl', 'rb') as file:
-    scaler = pickle.load(file)
+svr_model = load_model('model_svr.pkl')
+scaler = load_model('min_max_scaler.pkl')
 
 # Function to scrape the OHLC data from the stock market website
 def scrape_ohlc_data():
+    st.write("Scraping OHLC data...")
     url = 'https://investor.apple.com/stock-price/default.aspx'
 
     try:
@@ -155,13 +161,15 @@ def scrape_ema_20():
 # Streamlit application
 st.title('Apple Inc. Stock Price Forecast')
 
-# Automatic scraping when loading the app
-ohlc_data_new = scrape_ohlc_data()
-nasdaq = scrape_nasdaq()
-ema = scrape_ema_20()
+if not svr_model or not scaler:
+    st.error("Model or scaler is not loaded. Please check the file paths and formats.")
+else:
+    ohlc_data_new = scrape_ohlc_data()
+    nasdaq = scrape_nasdaq()
+    ema = scrape_ema_20()
 
-if ohlc_data_new:
-    st.write("Scraped OHLC data:")
+    if ohlc_data_new and nasdaq is not None and ema is not None:
+        st.success("Data successfully scraped.")
     
     # Change nasdaq and ema to lists with a single element
     nasdaq_list = [nasdaq]
@@ -183,8 +191,10 @@ if ohlc_data_new:
         "IXIC": [nasdaq_list[0]],
         "ema_20": [ema_list[0]],
     })
-
-
+    
+     else:
+        st.error("Failed to scrape one or more data sources.")
+         
     if st.button("Predict"):
         
         # Apply MinMaxScaler to the input data
