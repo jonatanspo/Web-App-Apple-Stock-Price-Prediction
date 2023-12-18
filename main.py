@@ -5,6 +5,11 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 
 # Import the trained SVR model
 with open('model_svr.pkl', 'rb') as file:
@@ -14,56 +19,45 @@ with open('model_svr.pkl', 'rb') as file:
 with open('min_max_scaler.pkl', 'rb') as file:
     scaler = pickle.load(file)
 
-# Function to scrape the OHLC data from the stock market website
+# Set up Chrome options
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # Ensure GUI is off
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+
+# Set path to chromedriver as per your configuration
+webdriver_service = Service(ChromeDriverManager().install())
+
+# Choose Chrome Browser
+driver = webdriver.Chrome(service=webdriver_service, options=chrome_options)
+
 def scrape_ohlc_data():
     url = 'https://investor.apple.com/stock-price/default.aspx'
+    driver.get(url)
+    
+    # Warte, bis die Daten geladen sind (könnte an die tatsächlichen Bedingungen angepasst werden)
+    driver.implicitly_wait(10)
 
     try:
-        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-        headers = {'User-Agent': user_agent}
+        open_price = driver.find_element(By.CLASS_NAME, 'module-stock_open').text
+        high_price = driver.find_element(By.CLASS_NAME, 'module-stock_high').text
+        low_price = driver.find_element(By.CLASS_NAME, 'module-stock_low').text
+        close_price = driver.find_element(By.CLASS_NAME, 'module-stock_value').text
+        volume = driver.find_element(By.CLASS_NAME, 'module-stock_volume').text
 
-        retries = 3  # Number of retry attempts
-        for _ in range(retries):
-            response = requests.get(url, headers=headers, timeout=10)
-            if response.status_code == 200:
-                break
-            else:
-                time.sleep(5)  # Wait before retrying
-        else:
-            raise RequestException("Maximum number of retry attempts reached.")
+        volume = float(volume.strip().replace(',', '')) * 1_000  # Konvertierung in Zahl
+        print(open_price, high_price, low_price, close_price, volume)
 
-        response.raise_for_status()
+        return open_price, high_price, low_price, close_price, volume
 
-        page_content = response.content
-        soup = BeautifulSoup(page_content, 'html.parser')
+    except Exception as e:
+        print(f"Es gab ein Problem beim Scrapen der Webseite: {e}")
+    finally:
+        driver.quit()  # Schließen des Browsers
 
-        # Select the desired <span> elements through class attributes
-        open_price_span = soup.find('span', class_='module-stock_open')
-        high_price_span = soup.find('span', class_='module-stock_high')
-        low_price_span = soup.find('span', class_='module-stock_low')
-        close_price_span = soup.find('span', class_='module-stock_value')
-        volume_span = soup.find('span', class_='module-stock_volume')
+# Rufen Sie die Funktion auf
+ohlc_data_new = scrape_ohlc_data()
 
-        # Check if <span> elements were found
-        if open_price_span and high_price_span and low_price_span and close_price_span and volume_span:
-            # Extract text contents and convert to desired data types
-            open_price = float(open_price_span.text)
-            high_price = float(high_price_span.text)
-            low_price = float(low_price_span.text)
-            close_price = float(close_price_span.text)
-            volume = float(volume_span.text.strip().replace(',', ''))  # Remove thousands separator and convert to a floating point number
-            volume *= 1_000  # Convert volume to millions
-
-            print(open_price, high_price, low_price, close_price, volume)
-
-            return open_price, high_price, low_price, close_price, volume
-        else:
-            print("Required <span> elements not found.")
-            return None
-    except RequestException as e:
-        print(f"Error in HTTP request: {e}")
-        return None
-    
 def scrape_nasdaq():
     url = 'https://finance.yahoo.com/quote/%5EIXIC/history?p=%5EIXIC'
 
