@@ -21,15 +21,15 @@ def scrape_ohlc_data():
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
         headers = {'User-Agent': user_agent}
 
-        retries = 3  # Anzahl der Wiederholungsversuche
+        retries = 3
         for _ in range(retries):
             response = requests.get(url, headers=headers, timeout=10)
             if response.status_code == 200:
                 break
             else:
-                time.sleep(5)  # Warten Sie vor dem erneuten Versuch
+                time.sleep(5)
         else:
-            raise RequestException("Maximale Anzahl von Wiederholungsversuchen erreicht.")
+            raise RequestException("Maximum number of retries reached.")
 
         response.raise_for_status()
 
@@ -38,18 +38,18 @@ def scrape_ohlc_data():
         table = soup.find_all('table')[0]
         rows = table.find_all('tr')
 
-        # Überprüfen, ob die Tabelle Daten enthält
+        # Checking the table
         if len(rows) < 2:
-            raise RequestException("Die Tabelle enthält keine Daten.")
+            raise RequestException("The table contains no data.")
 
-        # Hier erhalten wir den letzten Eintrag in der Tabelle
-        ohlc_row = rows[1]  # Ändern Sie die Zeilennummer auf 1, um die zweite Zeile zu erhalten
+ 
+        ohlc_row = rows[1] 
         ohlc_data = ohlc_row.find_all('td')
         open_price = float(ohlc_data[1].text)
         high_price = float(ohlc_data[2].text)
         low_price = float(ohlc_data[3].text)
         close_price = float(ohlc_data[4].text)
-        volume = float(ohlc_data[6].text.strip().replace(',', ''))  # Handelsvolumen aus der siebten Spalte (Index 6)
+        volume = float(ohlc_data[6].text.strip().replace(',', ''))
 
         return open_price, high_price, low_price, close_price, volume
     except RequestException as e:
@@ -69,7 +69,7 @@ def scrape_nasdaq():
             if response.status_code == 200:
                 break
             else:
-                time.sleep(5)  # Wait before retrying
+                time.sleep(5) 
         else:
             raise RequestException("Maximum number of retry attempts reached.")
 
