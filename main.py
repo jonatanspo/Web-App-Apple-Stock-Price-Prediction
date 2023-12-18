@@ -192,7 +192,7 @@ else:
         "ema_20": [ema_list[0]],
     })
     
-     else:
+    else:
         st.error("Failed to scrape one or more data sources.")
          
     if st.button("Predict"):
