@@ -187,6 +187,6 @@ if ohlc_data_new:
         st.success("The closing price of Apple's stock tomorrow evening will be {:.2f}$".format(pred[0]))
 
         if pred > df["Close"].values[0]:
-            st.success("According to this forecast, it makes sense to invest in Apple's stock, as tomorrow's closing price is likely to be higher than today's!")
+            st.success("According to this forecast, tomorrow evening's closing price seems to be higher or equal to today's closing price")
         else:
-            st.warning("Tomorrow evening's closing price is lower or equal to today's closing price.")
+            st.warning("Tomorrow evening's closing price seems to be lower or equal to today's closing price.")
