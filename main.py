@@ -5,59 +5,65 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.options import Options
 
-# Import the trained SVR model
+# Import des trainierten SVR-Modells
 with open('model_svr.pkl', 'rb') as file:
     svr_model = pickle.load(file)
 
-# Import the MinMaxScaler
+# Import des MinMaxScaler
 with open('min_max_scaler.pkl', 'rb') as file:
     scaler = pickle.load(file)
 
-# Set up Chrome options
-chrome_options = Options()
-chrome_options.add_argument("--headless")  # Ensure GUI is off
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-
-# Set path to chromedriver as per your configuration
-webdriver_service = Service(ChromeDriverManager().install())
-
-# Choose Chrome Browser
-driver = webdriver.Chrome(service=webdriver_service, options=chrome_options)
-
+# Funktion zum Scrapen der OHLC-Daten von der Börsen-Website
 def scrape_ohlc_data():
     url = 'https://investor.apple.com/stock-price/default.aspx'
-    driver.get(url)
-    
-    # Warte, bis die Daten geladen sind (könnte an die tatsächlichen Bedingungen angepasst werden)
-    driver.implicitly_wait(10)
 
     try:
-        open_price = driver.find_element(By.CLASS_NAME, 'module-stock_open').text
-        high_price = driver.find_element(By.CLASS_NAME, 'module-stock_high').text
-        low_price = driver.find_element(By.CLASS_NAME, 'module-stock_low').text
-        close_price = driver.find_element(By.CLASS_NAME, 'module-stock_value').text
-        volume = driver.find_element(By.CLASS_NAME, 'module-stock_volume').text
+        user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+        headers = {'User-Agent': user_agent}
 
-        volume = float(volume.strip().replace(',', '')) * 1_000  # Konvertierung in Zahl
-        print(open_price, high_price, low_price, close_price, volume)
+        retries = 3  # Anzahl der Wiederholungsversuche
+        for _ in range(retries):
+            response = requests.get(url, headers=headers, timeout=10)
+            if response.status_code == 200:
+                break
+            else:
+                time.sleep(5)  # Warten Sie vor dem erneuten Versuch
+        else:
+            raise RequestException("Maximale Anzahl von Wiederholungsversuchen erreicht.")
 
-        return open_price, high_price, low_price, close_price, volume
+        response.raise_for_status()
 
-    except Exception as e:
-        print(f"Es gab ein Problem beim Scrapen der Webseite: {e}")
-    finally:
-        driver.quit()  # Schließen des Browsers
+        page_content = response.content
+        soup = BeautifulSoup(page_content, 'html.parser')
 
-# Rufen Sie die Funktion auf
-ohlc_data_new = scrape_ohlc_data()
+        # Die gewünschten <span>-Elemente können durch die Klassenattribute ausgewählt werden
+        open_price_span = soup.find('span', class_='module-stock_open')
+        high_price_span = soup.find('span', class_='module-stock_high')
+        low_price_span = soup.find('span', class_='module-stock_low')
+        close_price_span = soup.find('span', class_='module-stock_value')
+        volume_span = soup.find('span', class_='module-stock_volume')
 
+        # Überprüfen, ob die <span>-Elemente gefunden wurden
+        if open_price_span and high_price_span and low_price_span and close_price_span and volume_span:
+            # Extrahieren Sie die Textinhalte und konvertieren Sie sie in die gewünschten Datentypen
+            open_price = float(open_price_span.text)
+            high_price = float(high_price_span.text)
+            low_price = float(low_price_span.text)
+            close_price = float(close_price_span.text)
+            volume = float(volume_span.text.strip().replace(',', ''))  # Handelsvolumen entfernen Sie Tausendertrennzeichen und konvertieren Sie es in eine Gleitkommazahl
+            volume *= 1_000  # Umrechnung des Volumens in Millionen
+
+            print(open_price, high_price, low_price, close_price, volume)
+
+            return open_price, high_price, low_price, close_price, volume
+        else:
+            print("Die benötigten <span>-Elemente wurden nicht gefunden.")
+            return None
+    except RequestException as e:
+        print(f"Fehler bei der HTTP-Anfrage: {e}")
+        return None
+    
 def scrape_nasdaq():
     url = 'https://finance.yahoo.com/quote/%5EIXIC/history?p=%5EIXIC'
 
@@ -65,15 +71,15 @@ def scrape_nasdaq():
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
         headers = {'User-Agent': user_agent}
 
-        retries = 3  # Number of retry attempts
+        retries = 3  # Anzahl der Wiederholungsversuche
         for _ in range(retries):
             response = requests.get(url, headers=headers, timeout=10)
             if response.status_code == 200:
                 break
             else:
-                time.sleep(5)  # Wait before retrying
+                time.sleep(5)  # Warten Sie vor dem erneuten Versuch
         else:
-            raise RequestException("Maximum number of retry attempts reached.")
+            raise RequestException("Maximale Anzahl von Wiederholungsversuchen erreicht.")
 
         response.raise_for_status()
 
@@ -82,11 +88,11 @@ def scrape_nasdaq():
         table_nasdaq = soup.find_all('table')[0]
         rows_nasdaq = table_nasdaq.find_all('tr')
 
-        # Check if the table contains data
-        if len(rows_nasdaq) < 3:  # The table should have at least 3 rows (Header + 2 data entries)
-            raise RequestException("Table does not contain sufficient data.")
+        # Überprüfen, ob die Tabelle Daten enthält
+        if len(rows_nasdaq) < 3:  # Die Tabelle sollte mindestens 3 Zeilen haben (Header + 2 Dateneinträge)
+            raise RequestException("Die Tabelle enthält keine ausreichenden Daten.")
 
-        # Here we get the last entry in the table
+        # Hier erhalten wir den letzten Eintrag in der Tabelle
         nasdaq_row_latest = rows_nasdaq[1]
         nasdaq_row_previous = rows_nasdaq[2]
         nasdaq_data_latest = nasdaq_row_latest.find_all('td')
@@ -96,22 +102,22 @@ def scrape_nasdaq():
         previous_close_price_cleaned_string = nasdaq_data_previous[4].text.replace(',', '')
         previous_close_price = float(previous_close_price_cleaned_string)
         
-        # Calculate the change in IXIC
-        result = ((latest_close_price - previous_close_price) / previous_close_price) * 100
+        # Berechnung der Änderung in IXIC
+        result = ((latest_close_price - previous_close_price) / previous_close_price)*100
 
         return result
     except RequestException as e:
-        print(f"Error in HTTP request: {e}")
+        print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
 
-# Test the function
+# Testen Sie die Funktion
 change_percentage = scrape_nasdaq()
 if change_percentage is not None:
-    print(f"Change percentage in IXIC: {change_percentage:.2f}%")
+    print(f"Änderungsprozentsatz in IXIC: {change_percentage:.2f}%")
 else:
-    print("Error fetching data.")
+    print("Fehler beim Abrufen der Daten.")
 
-
+    
 def scrape_ema_20(): 
     url = 'https://financhill.com/stock-price-chart/aapl-technical-analysis'
 
@@ -119,15 +125,15 @@ def scrape_ema_20():
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
         headers = {'User-Agent': user_agent}
 
-        retries = 3  # Number of retry attempts
+        retries = 3  # Anzahl der Wiederholungsversuche
         for _ in range(retries):
             response = requests.get(url, headers=headers, timeout=10)
             if response.status_code == 200:
                 break
             else:
-                time.sleep(5)  # Wait before retrying
+                time.sleep(5)  # Warten Sie vor dem erneuten Versuch
         else:
-            raise RequestException("Maximum number of retry attempts reached.")
+            raise RequestException("Maximale Anzahl von Wiederholungsversuchen erreicht.")
 
         response.raise_for_status()
 
@@ -136,38 +142,38 @@ def scrape_ema_20():
         table_ema_20 = soup.find('table',{"class":"stock-info-table"})
         rows_ema = table_ema_20.find_all('tr')
 
-        # Here we get the last entry in the table
+        # Hier erhalten wir den letzten Eintrag in der Tabelle
         ema_20_row = rows_ema[2]
         ema_20_data = ema_20_row.find_all('td')
         ema_20 = float(ema_20_data[0].text)
 
         return ema_20
     except RequestException as e:
-        print(f"Error in HTTP request: {e}")
+        print(f"Fehler bei der HTTP-Anfrage: {e}")
         return None
+     
+# Streamlit-Anwendung
+st.title('Apple Inc. Aktienkursprognose')
 
-# Streamlit application
-st.title('Apple Inc. Stock Price Forecast')
-
-# Automatic scraping when loading the app
+# Automatisches Scraping beim Laden der App
 ohlc_data_new = scrape_ohlc_data()
 nasdaq = scrape_nasdaq()
 ema = scrape_ema_20()
 
 if ohlc_data_new:
-    st.write("Scraped OHLC data:")
+    st.write("Gescrapte OHLC-Daten:")
     
-    # Change nasdaq and ema to lists with a single element
+    # Ändern Sie nasdaq und ema in Listen mit einem einzigen Element
     nasdaq_list = [nasdaq]
     ema_list = [ema]
     
     ohlc_table = pd.DataFrame({
-        "Metric": ["Open", "High", "Low", "Close", "Volume", "IXIC", "ema_20"],
-        "Value": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list[0], ema_list[0]]
-    }).set_index("Metric")  # Here we set the "Metric" column as the index
+        "Kennzahl": ["Open", "High", "Low", "Close", "Volume", "IXIC", "ema_20"],
+        "Wert": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list[0], ema_list[0]]
+    }).set_index("Kennzahl")  # Hier setzen wir die "Kennzahl" Spalte als Index
     st.table(ohlc_table)
 
-    # Create a DataFrame from the scraped data
+    # Erstellen eines DataFrame aus den gescrapten Daten
     df = pd.DataFrame({
         "Open": [ohlc_data_new[0]],
         "High": [ohlc_data_new[1]],
@@ -179,16 +185,16 @@ if ohlc_data_new:
     })
 
 
-    if st.button("Predict"):
+    if st.button("Vorhersage"):
         
-        # Apply MinMaxScaler to the input data
+        # Anwendung des MinMaxScaler auf die eingegebenen Daten
         input_data_scaled = scaler.transform(df)
 
-        # Predict with the model
+        # Vorhersage mit dem Modell
         pred = svr_model.predict(input_data_scaled)
-        st.success("The closing price of Apple's stock tomorrow evening will be {:.2f}$".format(pred[0]))
+        st.success("Der Schlusskurs der Apple Aktie wird morgen Abend {:.2f}$ betragen".format(pred[0]))
 
         if pred > df["Close"].values[0]:
-            st.success("According to this forecast, it makes sense to invest in Apple's stock, as tomorrow's closing price is likely to be higher than today's!")
+            st.success("Laut dieser Prognose ist es sinnvoll in die Apple Aktie zu investieren, da der morgige Schlusskurs vermutlich höher ist als der heutige!")
         else:
-            st.warning("Tomorrow evening's closing price is lower or equal to today's closing price.")
+            st.warning("Der Schlusskurs von morgen Abend ist niedriger oder gleich hoch wie der Schlusskurs")
