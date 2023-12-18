@@ -161,7 +161,7 @@ if ohlc_data_new:
     
     ohlc_table = pd.DataFrame({
         "Metric": ["Open", "High", "Low", "Close", "Volume", "IXIC", "ema_20"],
-        "Value": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list[0], ema_list[0]]
+        "Value USD": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list[0], ema_list[0]]
     }).set_index("Metric")  # Here we set the "Metric" column as the index
     st.table(ohlc_table)
 
