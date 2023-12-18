@@ -14,7 +14,6 @@ with open('model_svr.pkl', 'rb') as file:
 with open('min_max_scaler.pkl', 'rb') as file:
     scaler = pickle.load(file)
 
-# Function to scrape the OHLC data from the stock market website
 def scrape_ohlc_data():
     url = 'https://investor.apple.com/stock-price/default.aspx'
 
@@ -37,28 +36,23 @@ def scrape_ohlc_data():
         page_content = response.content
         soup = BeautifulSoup(page_content, 'html.parser')
 
-        # Select the desired <span> elements through class attributes
-        open_price_span = soup.find('span', class_='module-stock_open')
-        high_price_span = soup.find('span', class_='module-stock_high')
-        low_price_span = soup.find('span', class_='module-stock_low')
-        close_price_span = soup.find('span', class_='module-stock_value')
-        volume_span = soup.find('span', class_='module-stock_volume')
+        # Get the text of the <span> elements for stock information
+        open_price = soup.find('span', text="Day’s Open").find_next('span').text
+        high_price = soup.find('span', text="Intraday High").find_next('span').text
+        low_price = soup.find('span', text="Intraday Low").find_next('span').text
+        close_price = soup.find('span', text="Closing Price").find_next('span').text
+        volume = soup.find('span', text="Volume").find_next('span').text
 
-        # Check if <span> elements were found
-        if open_price_span and high_price_span and low_price_span and close_price_span and volume_span:
-            # Extract text contents and convert to desired data types
-            open_price = float(open_price_span.text)
-            high_price = float(high_price_span.text)
-            low_price = float(low_price_span.text)
-            close_price = float(close_price_span.text)
-            volume = float(volume_span.text.strip().replace(',', ''))  # Remove thousands separator and convert to a floating point number
-            volume *= 1_000  # Convert volume to millions
+        # Check if values were found
+        if open_price and high_price and low_price and close_price and volume:
+            # Convert volume to a number and adjust the units (if necessary)
+            volume = float(volume.strip().replace(',', '').replace('M', '')) * 1_000_000  # Convert volume from 'M' to a number
 
             print(open_price, high_price, low_price, close_price, volume)
 
-            return open_price, high_price, low_price, close_price, volume
+            return float(open_price), float(high_price), float(low_price), float(close_price), volume
         else:
-            print("Required <span> elements not found.")
+            print("Required stock information not found.")
             return None
     except RequestException as e:
         print(f"Error in HTTP request: {e}")
