@@ -180,17 +180,14 @@ if ohlc_data_new:
     })
 
     if st.button("Predict"):
-        try: 
-            # Apply MinMaxScaler to the input data
-            input_data_scaled = scaler.transform(df)
-    
-            # Prediction with the model
-            prediction = svr_model.predict(input_data_scaled)
-            st.success(f"The closing price of Apple stock is predicted to be ${prediction[0]:.2f} by the end of tomorrow.")
-    
-            if prediction > df["Close"].values[0]:
-                st.success("According to this forecast, tomorrow's closing price is expected to be higher than today's!")
-            else:
-                st.warning("Tomorrow's evening closing price is predicted to be lower or equal to today's closing price.")
-        except Exception as e: 
-            st.error(f"Error during prediction : {e}")
+        # Apply MinMaxScaler to the input data
+        input_data_scaled = scaler.transform(df)
+
+        # Prediction with the model
+        prediction = svr_model.predict(input_data_scaled)
+        st.success(f"The closing price of Apple stock is predicted to be ${prediction[0]:.2f} by the end of tomorrow.")
+
+        if prediction > df["Close"].values[0]:
+            st.success("According to this forecast, tomorrow's closing price is expected to be higher than today's!")
+        else:
+            st.warning("Tomorrow's evening closing price is predicted to be lower or equal to today's closing price.")
