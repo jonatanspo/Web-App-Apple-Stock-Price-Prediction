@@ -164,7 +164,7 @@ if ohlc_data_new:
     
     ohlc_table = pd.DataFrame({
         "Metric": ["Open", "High", "Low", "Close", "Volume", "IXIC", "ema_20"],
-        "Value": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list[0], ema_list[0]]
+        "Value USD": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list[0], ema_list[0]]
     }).set_index("Metric")  # Here we set the "Metric" column as the index
     st.table(ohlc_table)
 
@@ -189,6 +189,6 @@ if ohlc_data_new:
         st.success(f"The closing price of Apple stock is predicted to be ${prediction[0]:.2f} by the end of tomorrow.")
 
         if prediction > df["Close"].values[0]:
-            st.success("According to this forecast, it might be a good idea to invest in Apple stock, as tomorrow's closing price is expected to be higher than today's!")
+            st.success("According to this forecast, tomorrow's closing price is expected to be higher than today's!")
         else:
             st.warning("Tomorrow's evening closing price is predicted to be lower or equal to today's closing price.")
