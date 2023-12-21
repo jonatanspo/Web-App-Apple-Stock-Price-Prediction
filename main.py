@@ -169,7 +169,7 @@ if ohlc_data_new:
     st.table(ohlc_table)
 
     # Create a DataFrame from the scraped data
-    df1 = pd.DataFrame({
+    df = pd.DataFrame({
         "Open": [ohlc_data_new[0]],
         "High": [ohlc_data_new[1]],
         "Low": [ohlc_data_new[2]],
