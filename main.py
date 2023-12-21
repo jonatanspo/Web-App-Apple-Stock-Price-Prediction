@@ -63,51 +63,41 @@ def scrape_nasdaq():
         user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
         headers = {'User-Agent': user_agent}
 
-        retries = 3
+        retries = 3  # Number of retry attempts
         for _ in range(retries):
             response = requests.get(url, headers=headers, timeout=10)
             if response.status_code == 200:
                 break
             else:
-                time.sleep(5)
+                time.sleep(5) 
         else:
             raise RequestException("Maximum number of retry attempts reached.")
 
         response.raise_for_status()
 
-        soup = BeautifulSoup(response.content, 'html.parser')
+        page_content = response.content
+        soup = BeautifulSoup(page_content, 'html.parser')
         table_nasdaq = soup.find_all('table')[0]
         rows_nasdaq = table_nasdaq.find_all('tr')
 
-        if len(rows_nasdaq) < 3:
+        # Check if the table contains data
+        if len(rows_nasdaq) < 3:  # The table should have at least 3 rows (Header + 2 data entries)
             raise RequestException("Table does not contain sufficient data.")
 
-        nasdaq_data_latest = rows_nasdaq[1].find_all('td')
-        nasdaq_data_previous = rows_nasdaq[2].find_all('td')
-
-        def clean_price(price_string):
-            price_string = price_string.replace(',', '').replace('--', '')
-            try:
-                return float(price_string)
-            except ValueError:
-                return None
-
-        latest_close_price = clean_price(nasdaq_data_latest[4].text)
-        previous_close_price = clean_price(nasdaq_data_previous[4].text)
-
-        if latest_close_price is None or previous_close_price is None:
-            raise ValueError("Could not convert scraped data to float.")
-
+        # Here we get the last entry in the table
+        nasdaq_row_latest = rows_nasdaq[1]
+        nasdaq_row_previous = rows_nasdaq[2]
+        nasdaq_data_latest = nasdaq_row_latest.find_all('td')
+        nasdaq_data_previous = nasdaq_row_previous.find_all('td')
+        latest_close_price_cleaned_string = nasdaq_data_latest[4].text.replace(',', '')
+        latest_close_price = float(latest_close_price_cleaned_string)
+        previous_close_price_cleaned_string = nasdaq_data_previous[4].text.replace(',', '')
+        previous_close_price = float(previous_close_price_cleaned_string)
+        
+        # Calculate the change in IXIC
         result = ((latest_close_price - previous_close_price) / previous_close_price) * 100
 
         return result
-
-    except RequestException as e:
-        print(f"Request failed: {e}")
-        return None
-    except ValueError as e:
-        print(f"Data conversion failed: {e}")
-        return None
 
 # Test the function
 change_percentage = scrape_nasdaq()
