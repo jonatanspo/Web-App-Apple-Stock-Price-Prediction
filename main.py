@@ -164,19 +164,19 @@ if ohlc_data_new:
     
     ohlc_table = pd.DataFrame({
         "Metric": ["Open", "High", "Low", "Close", "Volume", "IXIC", "ema_20"],
-        "Value USD": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list[0], ema_list[0]]
+        "Value": [ohlc_data_new[0], ohlc_data_new[1], ohlc_data_new[2], ohlc_data_new[3], ohlc_data_new[4], nasdaq_list[0], ema_list[0]]
     }).set_index("Metric")  # Here we set the "Metric" column as the index
     st.table(ohlc_table)
 
     # Create a DataFrame from the scraped data
     df = pd.DataFrame({
-        "Open": [ohlc_data_new[0]],
-        "High": [ohlc_data_new[1]],
-        "Low": [ohlc_data_new[2]],
-        "Close": [ohlc_data_new[3]],
-        "Volume": [ohlc_data_new[4]],
-        "IXIC": [nasdaq_list[0]],
-        "ema_20": [ema_list[0]],
+        "Opening Price USD": [ohlc_data_new[0]],
+        "Highest Price USD": [ohlc_data_new[1]],
+        "Lowest Price USD": [ohlc_data_new[2]],
+        "Closing Price USD": [ohlc_data_new[3]],
+        "Volume USD": [ohlc_data_new[4]],
+        "IXIC change in %": [nasdaq_list[0]],
+        "ema_20 USD": [ema_list[0]],
     })
 
     if st.button("Predict"):
