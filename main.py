@@ -101,10 +101,10 @@ def scrape_nasdaq():
 
 # Test the function
 change_percentage = scrape_nasdaq()
-if change_percentage is not None:
-    print(f"Change percentage in IXIC: {change_percentage:.2f}%")
-else:
-    print("Error fetching data.")
+    if change_percentage is not None:
+        print(f"Change percentage in IXIC: {change_percentage:.2f}%")
+    else:
+        print("Error fetching data.")
 
 
 def scrape_ema_20(): 
