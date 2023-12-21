@@ -178,6 +178,7 @@ if ohlc_data_new:
         "IXIC change in %": [nasdaq_list[0]],
         "ema_20 USD": [ema_list[0]],
     })
+    print(df)
 
     if st.button("Predict"):
         # Apply MinMaxScaler to the input data
