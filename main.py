@@ -132,10 +132,15 @@ def scrape_ema_20():
         table_ema_20 = soup.find('table',{"class":"stock-info-table"})
         rows_ema = table_ema_20.find_all('tr')
 
-        # Get the last entry in the table
-        ema_20_row = rows_ema[2]
+        # Get the 6th row in the table (20-day EMA row)
+        ema_20_row = rows_ema[5]  # 6th row, index starts from 0
+        
+        # Get all 'td' elements in this row
         ema_20_data = ema_20_row.find_all('td')
-        ema_20 = float(ema_20_data[1].text)
+        
+        # Get the 20-day EMA value from the first 'td' element
+        ema_20_text = ema_20_data[0].text.replace(',', '').strip()
+        ema_20 = float(ema_20_text)
 
         return ema_20
     except RequestException as e:
