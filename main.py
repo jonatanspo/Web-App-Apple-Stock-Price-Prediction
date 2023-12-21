@@ -182,7 +182,6 @@ if ohlc_data_new:
     if st.button("Predict"):
         # Apply MinMaxScaler to the input data
         input_data_scaled = scaler.transform(df)
-        print(scaler.feature_names_in_)
 
         # Prediction with the model
         prediction = svr_model.predict(input_data_scaled)
